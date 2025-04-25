@@ -1,0 +1,155 @@
+services:
+  node-exporter:
+    image: prom/node-exporter:latest
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /dev:/host/dev:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/
+    deploy:
+      mode: "global"
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.2'
+          memory: 256M
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - /data/fast/prometheus_data:/prometheus
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_DATABASE_TYPE=postgres
+      - GF_DATABASE_HOST=postgres:5432
+      - GF_DATABASE_NAME=grafana
+      - GF_DATABASE_USER=postgres
+      - GF_DATABASE_PASSWORD=postgres
+      - GF_DATABASE_SSL_MODE=disable
+    volumes:
+      - /data/fast/grafana_data:/var/lib/grafana
+      - ./prometheus-datasource.yaml:/etc/grafana/provisioning/datasources/prometheus-datasource.yml
+      - ./loki-datasource.yaml:/etc/grafana/provisioning/datasources/loki-datasource.yaml
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - /data/fast/postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '1'
+          memory: 2G
+        limits:
+          cpus: '2'
+          memory: 8G
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    environment:
+      DATA_SOURCE_NAME: postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+  tempo:
+    image: grafana/tempo:latest
+    ports:
+      - "5778:5778"
+      - "3200:3200"
+    environment:
+      - TEMPO_HTTP_PORT=5778
+      - TEMPO_GRPC_PORT=3200
+    volumes:
+      - /data/fast/tempo_data:/var/lib/tempo
+      - ./tempo.yaml:/etc/tempo.yaml
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+        limits:
+          cpus: '1.0'
+          memory: 1G
+  loki:
+    image: grafana/loki:2.9.3
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/config.yaml
+      - /data/fast/loki_data:/loki
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+        limits:
+          cpus: '1.0'
+          memory: 1G
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/log:/var/log
+      - /data/fast/promtail_data:/var/lib/promtail
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+    command: -config.file=/etc/promtail/config.yaml
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.25'
+          memory: 256M

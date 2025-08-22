@@ -30,10 +30,10 @@ services:
       replicas: 1
       resources:
         reservations:
-          cpus: '0.5'
+          cpus: '0.1'
           memory: 512M
         limits:
-          cpus: '1'
+          cpus: '0.2'
           memory: 1G
 
   grafana:
@@ -56,10 +56,10 @@ services:
       replicas: 1
       resources:
         reservations:
-          cpus: '0.25'
+          cpus: '0.1'
           memory: 256M
         limits:
-          cpus: '0.5'
+          cpus: '0.2'
           memory: 512M
 
   postgres:
@@ -76,10 +76,10 @@ services:
       replicas: 1
       resources:
         reservations:
-          cpus: '1'
+          cpus: '0.1'
           memory: 2G
         limits:
-          cpus: '2'
+          cpus: '0.2'
           memory: 8G
 
   postgres-exporter:
@@ -90,10 +90,10 @@ services:
       replicas: 1
       resources:
         reservations:
-          cpus: '0.1'
+          cpus: '0.5'
           memory: 128M
         limits:
-          cpus: '0.25'
+          cpus: '1'
           memory: 256M
 
   tempo:
@@ -112,11 +112,12 @@ services:
       replicas: 1
       resources:
         reservations:
-          cpus: '0.5'
+          cpus: '0.1'
           memory: 512M
         limits:
-          cpus: '1.0'
+          cpus: '0.2'
           memory: 1G
+
   loki:
     image: grafana/loki:2.9.3
     ports:
@@ -129,10 +130,10 @@ services:
       replicas: 1
       resources:
         reservations:
-          cpus: '0.5'
+          cpus: '0.1'
           memory: 512M
         limits:
-          cpus: '1.0'
+          cpus: '0.2'
           memory: 1G
 
   promtail:
@@ -151,5 +152,58 @@ services:
           cpus: '0.1'
           memory: 128M
         limits:
-          cpus: '0.25'
+          cpus: '0.2'
+          memory: 256M
+
+  technitium-dns:
+    image: technitium/dns-server:latest
+    ports:
+      - "5380:5380"
+      - "53:53/tcp"
+      - "53:53/udp"
+    environment:
+      - TZ=Europe/Madrid
+    volumes:
+      - /data/fast/technitium-dns-data/zones:/etc/dns/zones
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 512M
+        limits:
+          cpus: '0.2'
+          memory: 1G
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.2'
+          memory: 256M
+
+  godaddy-dyndns:
+    image: us-east4-docker.pkg.dev/honest-moving/containers/godaddy-dyndns:latest
+    environment:
+      GODADDY_DDNS_API_KEY: "e4CDstCUk4yD_4j66Sv2NXE5XL2WAeRPQT4"
+      GODADDY_DDNS_API_SECRET: "3s4Gi469e8RRgNvxjt8grm"
+      GODADDY_DDNS_DOMAIN: "mattis.dev"
+      GODADDY_DDNS_INTERVAL: "60"
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.05'
+          memory: 128M
+        limits:
+          cpus: '0.1'
           memory: 256M

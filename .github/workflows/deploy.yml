@@ -1,0 +1,107 @@
+name: Deploy to Home Server
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        
+    - name: Add server to known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H ${{ secrets.HOME_SERVER_IP }} >> ~/.ssh/known_hosts
+        
+    - name: Create environment file with secrets
+      run: |
+        cat > .env << EOF
+        GRAFANA_ADMIN_PASSWORD=${{ vars.GRAFANA_ADMIN_PASSWORD }}
+        POSTGRES_PASSWORD=${{ vars.POSTGRES_PASSWORD }}
+        POSTGRES_USER=${{ vars.POSTGRES_USER }}
+        POSTGRES_DB=${{ vars.POSTGRES_DB }}
+        GODADDY_DDNS_API_KEY=${{ vars.GODADDY_DDNS_API_KEY }}
+        GODADDY_DDNS_API_SECRET=${{ vars.GODADDY_DDNS_API_SECRET }}
+        GODADDY_DDNS_DOMAIN=${{ vars.GODADDY_DDNS_DOMAIN }}
+        GODADDY_DDNS_INTERVAL=${{ vars.GODADDY_DDNS_INTERVAL }}
+        EOF
+        
+    - name: Deploy to Docker Swarm
+      run: |
+        # Copy .env file to server
+        scp .env ${{ secrets.SSH_USER }}@${{ secrets.HOME_SERVER_IP }}:/opt/go-environment/
+        
+        # Deploy using the deployment script
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.HOME_SERVER_IP }} << 'EOF'
+          # Go to project directory
+          cd /opt/go-environment
+          
+          # Update code
+          git pull origin main
+          
+          # Create necessary data directories
+          sudo mkdir -p /data/fast/{prometheus_data,grafana_data,postgres_data,tempo_data,loki_data,promtail_data,technitium-dns-data/zones}
+          sudo chown -R 1000:1000 /data/fast/
+          
+          # Make deployment script executable and run it
+          chmod +x scripts/deploy-with-env.sh
+          ./scripts/deploy-with-env.sh
+        EOF
+        
+    - name: Health Check
+      run: |
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.HOME_SERVER_IP }} << 'EOF'
+          # Wait for services to start
+          sleep 30
+          
+          # Check services status
+          docker stack services go-environment
+          
+          # Check availability of main services
+          echo "Checking service availability..."
+          
+          # Prometheus
+          if curl -f http://localhost:9090/-/healthy; then
+            echo "✅ Prometheus is healthy"
+          else
+            echo "❌ Prometheus health check failed"
+            exit 1
+          fi
+          
+          # Grafana
+          if curl -f http://localhost:3000/api/health; then
+            echo "✅ Grafana is healthy"
+          else
+            echo "❌ Grafana health check failed"
+            exit 1
+          fi
+          
+          # Loki
+          if curl -f http://localhost:3100/ready; then
+            echo "✅ Loki is healthy"
+          else
+            echo "❌ Loki health check failed"
+            exit 1
+          fi
+          
+          echo "All services are healthy! 🎉"
+        EOF

@@ -25,7 +25,7 @@ services:
       - "9090:9090"
     volumes:
       - /data/fast/prometheus_data:/prometheus
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./configs/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
     deploy:
       replicas: 1
       resources:
@@ -41,17 +41,17 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
       - GF_DATABASE_TYPE=postgres
       - GF_DATABASE_HOST=postgres:5432
-      - GF_DATABASE_NAME=grafana
-      - GF_DATABASE_USER=postgres
-      - GF_DATABASE_PASSWORD=postgres
+      - GF_DATABASE_NAME=${POSTGRES_DB:-grafana}
+      - GF_DATABASE_USER=${POSTGRES_USER:-postgres}
+      - GF_DATABASE_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - GF_DATABASE_SSL_MODE=disable
     volumes:
       - /data/fast/grafana_data:/var/lib/grafana
-      - ./prometheus-datasource.yaml:/etc/grafana/provisioning/datasources/prometheus-datasource.yml
-      - ./loki-datasource.yaml:/etc/grafana/provisioning/datasources/loki-datasource.yaml
+      - ./configs/prometheus/prometheus-datasource.yaml:/etc/grafana/provisioning/datasources/prometheus-datasource.yml
+      - ./configs/loki/loki-datasource.yaml:/etc/grafana/provisioning/datasources/loki-datasource.yaml
     deploy:
       replicas: 1
       resources:
@@ -65,9 +65,9 @@ services:
   postgres:
     image: postgres:17
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
     volumes:
       - /data/fast/postgres_data:/var/lib/postgresql/data
     ports:
@@ -85,7 +85,7 @@ services:
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
     environment:
-      DATA_SOURCE_NAME: postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
+      DATA_SOURCE_NAME: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}?sslmode=disable
     deploy:
       replicas: 1
       resources:
@@ -106,7 +106,7 @@ services:
       - TEMPO_GRPC_PORT=3200
     volumes:
       - /data/fast/tempo_data:/var/lib/tempo
-      - ./tempo.yaml:/etc/tempo.yaml
+      - ./configs/tempo/tempo.yaml:/etc/tempo.yaml
     command: [ "-config.file=/etc/tempo.yaml" ]
     deploy:
       replicas: 1
@@ -124,7 +124,7 @@ services:
       - "3100:3100"
     command: -config.file=/etc/loki/config.yaml
     volumes:
-      - ./loki-config.yaml:/etc/loki/config.yaml
+      - ./configs/loki/loki-config.yaml:/etc/loki/config.yaml
       - /data/fast/loki_data:/loki
     deploy:
       replicas: 1
@@ -143,7 +143,7 @@ services:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/log:/var/log
       - /data/fast/promtail_data:/var/lib/promtail
-      - ./promtail-config.yaml:/etc/promtail/config.yaml
+      - ./configs/promtail/promtail-config.yaml:/etc/promtail/config.yaml
     command: -config.file=/etc/promtail/config.yaml
     deploy:
       replicas: 1
@@ -180,7 +180,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     deploy:
       replicas: 1
       resources:
@@ -194,10 +194,10 @@ services:
   godaddy-dyndns:
     image: us-east4-docker.pkg.dev/honest-moving/containers/godaddy-dyndns:latest
     environment:
-      GODADDY_DDNS_API_KEY: "e4CDstCUk4yD_4j66Sv2NXE5XL2WAeRPQT4"
-      GODADDY_DDNS_API_SECRET: "3s4Gi469e8RRgNvxjt8grm"
-      GODADDY_DDNS_DOMAIN: "mattis.dev"
-      GODADDY_DDNS_INTERVAL: "60"
+      GODADDY_DDNS_API_KEY: ${GODADDY_DDNS_API_KEY}
+      GODADDY_DDNS_API_SECRET: ${GODADDY_DDNS_API_SECRET}
+      GODADDY_DDNS_DOMAIN: ${GODADDY_DDNS_DOMAIN}
+      GODADDY_DDNS_INTERVAL: ${GODADDY_DDNS_INTERVAL:-60}
     deploy:
       replicas: 1
       resources:

@@ -66,6 +66,8 @@ jobs:
           # Clone repository if it doesn't exist
           if [ ! -d ".git" ]; then
             echo "Cloning repository..."
+            # Remove existing content and clone fresh
+            rm -rf * .git* 2>/dev/null || true
             git clone https://github.com/mattis.dev/go-environment.git .
           else
             echo "Updating code..."

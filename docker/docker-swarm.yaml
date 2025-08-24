@@ -51,7 +51,6 @@ services:
     volumes:
       - /data/fast/grafana_data:/var/lib/grafana
       - ./configs/prometheus/prometheus-datasource.yaml:/etc/grafana/provisioning/datasources/prometheus-datasource.yml
-
     deploy:
       replicas: 1
       resources:
@@ -172,3 +171,8 @@ services:
         limits:
           cpus: '0.2'
           memory: 512M
+
+networks:
+  default:
+    external: true
+    name: shared-network

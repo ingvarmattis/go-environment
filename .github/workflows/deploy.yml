@@ -129,148 +129,36 @@ jobs:
           echo "POSTGRES_DB=${{ vars.POSTGRES_DB }}" >> .env
           echo "✅ .env file restored"
           
-          # Show what was cloned
-          echo "📁 Repository contents after clone:"
-          ls -la
-          echo "📁 Docker directory contents:"
-          ls -la docker/
-          
-          # Create necessary data directories
-          echo "📁 Creating data directories..."
-          sudo mkdir -p /data/fast/{prometheus_data,grafana_data,postgres_data,tempo_data,technitium-dns-data/zones,torrserver_data,torrserver_cache}
-          sudo chown -R 1000:1000 /data/fast/
-          
           # Create shared external network for inter-stack communication
-          echo "🌐 Creating shared external network..."
-          docker network create --driver overlay --attachable shared-network 2>/dev/null || echo "⚠️ Network shared-network already exists or failed to create"
-          echo "📊 Available networks:"
-          docker network ls
-          
-          # Configure Docker Swarm for automatic image pulling
-          echo "🐳 Configuring Docker Swarm for automatic image pulling..."
-          
-          # Enable experimental features and image pulling
-          echo "🔧 Enabling Docker Swarm experimental features..."
-          docker swarm update --autolock=false
-          
-          # Set Docker daemon to allow image pulling
-          echo "⚙️ Configuring Docker daemon settings..."
-          sudo systemctl stop docker
-          sudo mkdir -p /etc/docker
-          echo '{"experimental": true, "features": {"buildkit": true}}' | sudo tee /etc/docker/daemon.json
-          sudo systemctl start docker
-          
-          echo "✅ Docker Swarm configured for automatic image pulling"
-          
-          # Verify directory permissions
-          echo "🔍 Checking directory permissions..."
-          ls -la /data/fast/
-          echo "🔍 Checking directory ownership..."
-          ls -la /data/fast/ | grep -E "(prometheus_data|grafana_data|postgres_data|tempo_data|torrserver_data|torrserver_cache)"
+          docker network create --driver overlay --attachable shared-network 2>/dev/null || true
           
           # Make deployment script executable and run it
           chmod +x scripts/deploy-with-env.sh
           ./scripts/deploy-with-env.sh
           
           # Deploy Docker Swarm stack
-          echo "🚀 Deploying Docker Swarm stack..."
-          echo "📁 Current directory: $(pwd)"
-          echo "📁 Listing files:"
-          ls -la
-          echo "📁 Docker directory contents:"
-          ls -la docker/
-          echo "📁 Environment variables (passwords hidden):"
-          sed 's/=.*/=***/' .env
-          echo "🐳 Docker Swarm status:"
-          docker info | grep Swarm
-          echo "🚀 Starting deployment..."
-          echo "📁 Checking Docker Swarm file:"
-          ls -la docker/
-          
-          # Check if required images are available
-          echo "🐳 Checking Docker images availability..."
-          docker images | grep -E "(grafana|prometheus|postgres|tempo|nginx|torrserver|technitium|node-exporter|postgres-exporter)" || echo "⚠️ Some images not found locally"
-          echo "📁 Docker Swarm file content (first 20 lines):"
-          head -20 docker/docker-swarm.yaml
-          
-          # Validate Docker Swarm file
-          echo "🔍 Validating Docker Swarm file..."
-          if docker-compose -f docker/docker-swarm.yaml config >/dev/null 2>&1; then
-            echo "✅ Docker Swarm file is valid"
-          else
-            echo "⚠️ Docker Swarm file validation failed, but continuing with deployment..."
-            echo "📋 Full file content:"
-            cat docker/docker-swarm.yaml
-          fi
-          
-          echo "🚀 Deploying stack..."
           docker stack deploy -c docker/docker-swarm.yaml go-environment
-          echo "✅ Deployment completed"
-          echo "📊 Stack status:"
-          docker stack ls
-          echo "📊 Services status:"
-          docker stack services go-environment
           
-          # Wait a bit and check service logs for failed services
-          echo "⏳ Waiting for services to start..."
+          # Wait for services to start
           sleep 30
           
-          echo "📊 Checking service status and logs..."
+          # Check service status and logs for failed services
           docker stack services go-environment
           
           # Check logs for services that might have failed
-          echo "📋 Checking service logs for potential failures..."
           docker service logs go-environment_prometheus --tail 20 2>/dev/null || echo "❌ Cannot get Prometheus logs"
           docker service logs go-environment_grafana --tail 20 2>/dev/null || echo "❌ Cannot get Grafana logs"
           docker service logs go-environment_postgres --tail 20 2>/dev/null || echo "❌ Cannot get Postgres logs"
-          docker service logs go-environment_tempo --tail 20 2>/dev/null || echo "❌ Cannot get Tempo logs"
+          docker service logs go-environment_tempo --tail 20 2>/dev/null || echo "❌ Cannot get TorrServer logs"
           docker service logs go-environment_nginx --tail 20 2>/dev/null || echo "❌ Cannot get Nginx logs"
           docker service logs go-environment_torrserver --tail 20 2>/dev/null || echo "❌ Cannot get TorrServer logs"
-          
-          # Check if config files exist
-          echo "📁 Checking if config files exist..."
-          ls -la /home/go-environment/configs/prometheus/ || echo "❌ Prometheus configs not found"
-          ls -la /home/go-environment/configs/grafana/ || echo "❌ Grafana configs not found"
-          ls -la /home/go-environment/configs/tempo/ || echo "❌ Tempo configs not found"
-          ls -la /home/go-environment/configs/nginx/ || echo "❌ Nginx configs not found"
         EOF
         
-    - name: Health Check
-      run: |
-        ssh -p 2222 ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} << 'EOF'
-          # Wait for services to start
-          echo "⏳ Waiting for services to start..."
-          sleep 60
-          
-          # Check Docker Swarm services status
-          echo "📊 Checking Docker Swarm services status..."
-          docker stack services go-environment
-          
-          # Check if services are running
-          echo "🔍 Checking if services are running..."
-          docker service ls --filter "label=com.docker.stack.namespace=go-environment"
-          
-          # Check services status
-          docker stack services ${{ github.event.inputs.environment || 'go-environment' }}
-          
-          # Check availability of main services
-          echo "Checking service availability..."
-          
-          # Prometheus
-          if curl -f http://localhost:9090/-/healthy; then
-            echo "✅ Prometheus is healthy"
-          else
-            echo "❌ Prometheus health check failed"
-            exit 1
-          fi
-          
-          # Grafana
-          if curl -f http://localhost:3000/api/health; then
-            echo "✅ Grafana is healthy"
-          else
-            echo "❌ Grafana health check failed"
-            exit 1
-          fi
-          
-          echo "All services are healthy! 🎉"
-        EOF
+                   - name: Health Check
+       run: |
+         ssh -p 2222 ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} << 'EOF'
+           sleep 60
+           docker stack services go-environment
+           curl -f http://localhost:9090/-/healthy || exit 1
+           curl -f http://localhost:3000/api/health || exit 1
+         EOF

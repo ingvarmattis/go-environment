@@ -41,10 +41,23 @@ jobs:
         # Get SSH host key from custom port 2222
         ssh-keyscan -H -p 2222 ${{ vars.HOME_SERVER_IP }} >> ~/.ssh/known_hosts
         
-
-        
     - name: Deploy to Docker Swarm
       run: |
+        # Create .env file locally first
+        cat > .env << 'ENVEOF'
+        GRAFANA_ADMIN_PASSWORD=${{ vars.GRAFANA_ADMIN_PASSWORD }}
+        POSTGRES_PASSWORD=${{ vars.POSTGRES_PASSWORD }}
+        POSTGRES_USER=${{ vars.POSTGRES_USER }}
+        POSTGRES_DB=${{ vars.POSTGRES_DB }}
+        GODADDY_DDNS_API_KEY=${{ vars.GODADDY_DDNS_API_KEY }}
+        GODADDY_DDNS_API_SECRET=${{ vars.GODADDY_DDNS_API_SECRET }}
+        GODADDY_DDNS_DOMAIN=${{ vars.GODADDY_DDNS_DOMAIN }}
+        GODADDY_DDNS_INTERVAL=${{ vars.GODADDY_DDNS_INTERVAL }}
+        ENVEOF
+        
+        # Copy .env file to server
+        scp -P 2222 .env ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }}:/home/go-environment/
+        
         # Deploy using the deployment script
         ssh -p 2222 ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} << 'EOF'
           # Create project directory if it doesn't exist
@@ -53,18 +66,6 @@ jobs:
           
           # Go to project directory
           cd /home/go-environment
-          
-          # Create .env file with secrets
-          cat > .env << ENVEOF
-          GRAFANA_ADMIN_PASSWORD=${{ vars.GRAFANA_ADMIN_PASSWORD }}
-          POSTGRES_PASSWORD=${{ vars.POSTGRES_PASSWORD }}
-          POSTGRES_USER=${{ vars.POSTGRES_USER }}
-          POSTGRES_DB=${{ vars.POSTGRES_DB }}
-          GODADDY_DDNS_API_KEY=${{ vars.GODADDY_DDNS_API_KEY }}
-          GODADDY_DDNS_API_SECRET=${{ vars.GODADDY_DDNS_API_SECRET }}
-          GODADDY_DDNS_DOMAIN=${{ vars.GODADDY_DDNS_DOMAIN }}
-          GODADDY_DDNS_INTERVAL=${{ vars.GODADDY_DDNS_INTERVAL }}
-          ENVEOF
           
           # Clone repository if it doesn't exist
           if [ ! -d ".git" ]; then

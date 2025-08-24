@@ -155,7 +155,28 @@ jobs:
             sudo mkdir -p /data/fast/torrserver_data
             sudo chown -R 1000:1000 /data/fast/torrserver_data
           fi
+          if [ ! -d "/data/fast/torrserver_cache" ]; then
+            sudo mkdir -p /data/fast/torrserver_cache
+            sudo chown -R 1000:1000 /data/fast/torrserver_cache
+          fi
           echo "✅ Data directories created/verified"
+          
+          # Copy necessary configs to data directories
+          echo "📋 Copying configs to data directories..."
+          
+          # Copy DNS zones to Technitium DNS data directory
+          if [ -d "configs/technitium-dns" ]; then
+            sudo cp -r configs/technitium-dns/* /data/fast/technitium-dns-data/ 2>/dev/null || echo "⚠️ No Technitium DNS configs found"
+          fi
+          
+          # Create default DNS zones if none exist
+          if [ ! -f "/data/fast/technitium-dns-data/zones/example.com.json" ]; then
+            sudo mkdir -p /data/fast/technitium-dns-data/zones
+            echo '{"name":"example.com","zoneType":"Primary","primaryNameServer":"ns1.example.com","adminEmailAddress":"admin@example.com","zoneFile":"$ORIGIN example.com.\n$TTL 3600\n@ IN SOA ns1.example.com. admin.example.com. 2024010101 3600 1800 1209600 3600\n@ IN NS ns1.example.com.\n@ IN A 127.0.0.1\nns1 IN A 127.0.0.1"}' | sudo tee /data/fast/technitium-dns-data/zones/example.com.json > /dev/null
+            sudo chown -R 1000:1000 /data/fast/technitium-dns-data/zones
+          fi
+          
+          echo "✅ Configs copied to data directories"
           
           # Create shared external network for inter-stack communication
           docker network create --driver overlay --attachable shared-network 2>/dev/null || true

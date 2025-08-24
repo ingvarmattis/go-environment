@@ -146,8 +146,21 @@ jobs:
           echo "📊 Available networks:"
           docker network ls
           
-          # Docker Swarm will pull images automatically during deployment
-          echo "🐳 Docker Swarm will pull images automatically during deployment"
+          # Configure Docker Swarm for automatic image pulling
+          echo "🐳 Configuring Docker Swarm for automatic image pulling..."
+          
+          # Enable experimental features and image pulling
+          echo "🔧 Enabling Docker Swarm experimental features..."
+          docker swarm update --autolock=false
+          
+          # Set Docker daemon to allow image pulling
+          echo "⚙️ Configuring Docker daemon settings..."
+          sudo systemctl stop docker
+          sudo mkdir -p /etc/docker
+          echo '{"experimental": true, "features": {"buildkit": true}}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl start docker
+          
+          echo "✅ Docker Swarm configured for automatic image pulling"
           
           # Verify directory permissions
           echo "🔍 Checking directory permissions..."
@@ -213,6 +226,13 @@ jobs:
           docker service logs go-environment_tempo --tail 20 2>/dev/null || echo "❌ Cannot get Tempo logs"
           docker service logs go-environment_nginx --tail 20 2>/dev/null || echo "❌ Cannot get Nginx logs"
           docker service logs go-environment_torrserver --tail 20 2>/dev/null || echo "❌ Cannot get TorrServer logs"
+          
+          # Check if config files exist
+          echo "📁 Checking if config files exist..."
+          ls -la /home/go-environment/configs/prometheus/ || echo "❌ Prometheus configs not found"
+          ls -la /home/go-environment/configs/grafana/ || echo "❌ Grafana configs not found"
+          ls -la /home/go-environment/configs/tempo/ || echo "❌ Tempo configs not found"
+          ls -la /home/go-environment/configs/nginx/ || echo "❌ Nginx configs not found"
         EOF
         
     - name: Health Check

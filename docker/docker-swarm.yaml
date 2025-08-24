@@ -60,6 +60,14 @@ services:
         limits:
           cpus: '0.2'
           memory: 512M
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+        order: stop-first
 
   postgres:
     image: postgres:17
@@ -80,6 +88,14 @@ services:
         limits:
           cpus: '0.2'
           memory: 8G
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+        order: stop-first
 
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
@@ -171,6 +187,17 @@ services:
         limits:
           cpus: '0.2'
           memory: 512M
+
+# Global configuration for automatic image pulling
+x-common-deploy: &common-deploy
+  update_config:
+    parallelism: 1
+    delay: 10s
+    order: start-first
+  rollback_config:
+    parallelism: 1
+    delay: 5s
+    order: stop-first
 
 networks:
   default:

@@ -129,6 +129,34 @@ jobs:
           echo "POSTGRES_DB=${{ vars.POSTGRES_DB }}" >> .env
           echo "✅ .env file restored"
           
+          # Create necessary data directories in /data/fast if they don't exist
+          echo "📁 Creating data directories..."
+          if [ ! -d "/data/fast/prometheus_data" ]; then
+            sudo mkdir -p /data/fast/prometheus_data
+            sudo chown -R 1000:1000 /data/fast/prometheus_data
+          fi
+          if [ ! -d "/data/fast/grafana_data" ]; then
+            sudo mkdir -p /data/fast/grafana_data
+            sudo chown -R 1000:1000 /data/fast/grafana_data
+          fi
+          if [ ! -d "/data/fast/postgres_data" ]; then
+            sudo mkdir -p /data/fast/postgres_data
+            sudo chown -R 1000:1000 /data/fast/postgres_data
+          fi
+          if [ ! -d "/data/fast/tempo_data" ]; then
+            sudo mkdir -p /data/fast/tempo_data
+            sudo chown -R 1000:1000 /data/fast/tempo_data
+          fi
+          if [ ! -d "/data/fast/technitium-dns-data/zones" ]; then
+            sudo mkdir -p /data/fast/technitium-dns-data/zones
+            sudo chown -R 1000:1000 /data/fast/technitium-dns-data
+          fi
+          if [ ! -d "/data/fast/torrserver_data" ]; then
+            sudo mkdir -p /data/fast/torrserver_data
+            sudo chown -R 1000:1000 /data/fast/torrserver_data
+          fi
+          echo "✅ Data directories created/verified"
+          
           # Create shared external network for inter-stack communication
           docker network create --driver overlay --attachable shared-network 2>/dev/null || true
           

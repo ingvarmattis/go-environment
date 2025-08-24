@@ -156,12 +156,7 @@ jobs:
           if [ ! -d "/data/fast/technitium-dns-data/zones" ]; then
             sudo mkdir -p /data/fast/technitium-dns-data/zones
           fi
-          if [ ! -d "/data/fast/torrserver_data" ]; then
-            sudo mkdir -p /data/fast/torrserver_data
-          fi
-          if [ ! -d "/data/fast/torrserver_cache" ]; then
-            sudo mkdir -p /data/fast/torrserver_cache
-          fi
+
           
           # Set correct ownership and permissions for all directories
           echo "🔐 Setting correct permissions..."
@@ -212,6 +207,19 @@ jobs:
           chmod +x scripts/deploy-with-env.sh
           ./scripts/deploy-with-env.sh
           
+          # Force pull required images (fallback if automatic doesn't work)
+          echo "📥 Pulling required Docker images..."
+          docker pull postgres:17
+          docker pull grafana/grafana:latest
+          docker pull prom/prometheus:latest
+          docker pull grafana/tempo:latest
+          docker pull nginx:latest
+
+          docker pull technitium/dns-server:latest
+          docker pull prom/node-exporter:latest
+          docker pull prometheuscommunity/postgres-exporter:latest
+          echo "✅ All images pulled successfully"
+          
           # Deploy Docker Swarm stack
           docker stack deploy -c docker/docker-swarm.yaml go-environment
           
@@ -225,9 +233,9 @@ jobs:
           docker service logs go-environment_prometheus --tail 20 2>/dev/null || echo "❌ Cannot get Prometheus logs"
           docker service logs go-environment_grafana --tail 20 2>/dev/null || echo "❌ Cannot get Grafana logs"
           docker service logs go-environment_postgres --tail 20 2>/dev/null || echo "❌ Cannot get Postgres logs"
-          docker service logs go-environment_tempo --tail 20 2>/dev/null || echo "❌ Cannot get TorrServer logs"
+          docker service logs go-environment_tempo --tail 20 2>/dev/null || echo "❌ Cannot get Tempo logs"
           docker service logs go-environment_nginx --tail 20 2>/dev/null || echo "❌ Cannot get Nginx logs"
-          docker service logs go-environment_torrserver --tail 20 2>/dev/null || echo "❌ Cannot get TorrServer logs"
+
         EOF
         
     - name: Health Check

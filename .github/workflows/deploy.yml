@@ -84,6 +84,10 @@ jobs:
           # Make deployment script executable and run it
           chmod +x scripts/deploy-with-env.sh
           ./scripts/deploy-with-env.sh
+          
+          # Deploy Docker Swarm stack
+          echo "🚀 Deploying Docker Swarm stack..."
+          docker stack deploy -c docker/docker-swarm.yaml go-environment
         EOF
         
     - name: Health Check

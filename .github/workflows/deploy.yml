@@ -146,6 +146,9 @@ jobs:
           echo "📊 Available networks:"
           docker network ls
           
+          # Docker Swarm will pull images automatically during deployment
+          echo "🐳 Docker Swarm will pull images automatically during deployment"
+          
           # Verify directory permissions
           echo "🔍 Checking directory permissions..."
           ls -la /data/fast/

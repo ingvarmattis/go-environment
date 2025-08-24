@@ -153,3 +153,22 @@ services:
         limits:
           cpus: '0.2'
           memory: 256M
+
+  torrserver:
+    image: dloser/torrserver:latest
+    ports:
+      - "8090:8090"
+    environment:
+      - TZ=Europe/Madrid
+    volumes:
+      - /data/fast/torrserver_data:/downloads
+      - /data/fast/torrserver_cache:/cache
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+        limits:
+          cpus: '0.2'
+          memory: 512M

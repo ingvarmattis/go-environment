@@ -25,7 +25,7 @@ services:
       - "9090:9090"
     volumes:
       - /data/fast/prometheus_data:/prometheus
-      - ./configs/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - /home/go-environment/configs/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
     deploy:
       replicas: 1
       resources:
@@ -50,7 +50,7 @@ services:
       - GF_DATABASE_SSL_MODE=disable
     volumes:
       - /data/fast/grafana_data:/var/lib/grafana
-      - ./configs/prometheus/prometheus-datasource.yaml:/etc/grafana/provisioning/datasources/prometheus-datasource.yml
+      - /home/go-environment/configs/prometheus/prometheus-datasource.yaml:/etc/grafana/provisioning/datasources/prometheus-datasource.yml
     deploy:
       replicas: 1
       resources:
@@ -105,7 +105,7 @@ services:
       - TEMPO_GRPC_PORT=3200
     volumes:
       - /data/fast/tempo_data:/var/lib/tempo
-      - ./configs/tempo/tempo.yaml:/etc/tempo.yaml
+      - /home/go-environment/configs/tempo/tempo.yaml:/etc/tempo.yaml
     command: [ "-config.file=/etc/tempo.yaml" ]
     deploy:
       replicas: 1
@@ -142,7 +142,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /home/go-environment/configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     deploy:
       replicas: 1
       resources:

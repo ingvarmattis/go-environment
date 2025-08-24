@@ -86,11 +86,7 @@ jobs:
         # Copy .env file to server
         scp -P 2222 .env ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }}:/home/go-environment/
         
-        # Copy SSH key for GitHub access
-        echo "🔑 Copying SSH key for GitHub access..."
-        ssh -p 2222 ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} "mkdir -p ~/.ssh"
-        echo '${{ secrets.SSH_PRIVATE_KEY }}' | ssh -p 2222 ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} "cat > ~/.ssh/id_rsa"
-        ssh -p 2222 ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} "chmod 600 ~/.ssh/id_rsa"
+
         
         # Deploy using the deployment script
         ssh -p 2222 ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} << 'EOF'
@@ -101,30 +97,10 @@ jobs:
           # Go to project directory
           cd /home/go-environment
           
-          # Setup GitHub SSH access
-          echo "🔑 Setting up GitHub SSH access..."
-          mkdir -p ~/.ssh
-          echo "github.com,140.82.112.3 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvOqTsVpzRh0pFnc+OsmTBOaEhtG7Jl87nXggsradZoTmPnvz46wHn5jW0GlBwZTRlYwJIl==" >> ~/.ssh/known_hosts
-          echo "github.com,140.82.112.4 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvOqTsVpzRh0pFnc+OsmTBOaEhtG7Jl87nXggsradZoTmPnvz46wHn5jW0GlBwZTRlYwJIl==" >> ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-          
-          # Copy GitHub SSH key from GitHub Actions
-          echo "🔑 Copying GitHub SSH key..."
-          echo '${{ secrets.SSH_PRIVATE_KEY }}' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          
-          # Setup Git configuration
+          # Setup Git configuration for GitHub
+          echo "🔑 Setting up Git configuration..."
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          
-          # Start SSH agent and add key
-          echo "🔑 Starting SSH agent..."
-          eval $(ssh-agent -s)
-          ssh-add ~/.ssh/id_rsa
-          
-          # Test GitHub SSH connection
-          echo "🔑 Testing GitHub SSH connection..."
-          ssh -T git@github.com || echo "GitHub SSH connection established"
           
           # Check if .env file exists and show its content (passwords hidden)
           echo "📁 Checking .env file on server:"
@@ -139,7 +115,7 @@ jobs:
           # Force clean clone - remove everything and clone fresh
           echo "🧹 Cleaning directory and cloning repository..."
           rm -rf * .git* .env 2>/dev/null || true
-          git clone git@github.com:ingvarmattis/go-environment.git .
+          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/ingvarmattis/go-environment.git .
           
           # Verify repository was cloned
           if [ ! -f "docker/docker-swarm.yaml" ]; then

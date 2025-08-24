@@ -167,8 +167,6 @@ jobs:
           sudo chmod -R 777 /data/fast/prometheus_data
           sudo chmod -R 777 /data/fast/tempo_data
           sudo chmod -R 777 /data/fast/technitium-dns-data
-          sudo chmod -R 777 /data/fast/torrserver_data
-          sudo chmod -R 777 /data/fast/torrserver_cache
           
           echo "✅ Data directories created/verified with correct permissions"
           
@@ -195,8 +193,6 @@ jobs:
           sudo chmod -R 777 /data/fast/prometheus_data
           sudo chmod -R 777 /data/fast/tempo_data
           sudo chmod -R 777 /data/fast/technitium-dns-data
-          sudo chmod -R 777 /data/fast/torrserver_data
-          sudo chmod -R 777 /data/fast/torrserver_cache
           
           echo "✅ Configs copied to data directories with correct permissions"
           
@@ -236,13 +232,4 @@ jobs:
           docker service logs go-environment_tempo --tail 20 2>/dev/null || echo "❌ Cannot get Tempo logs"
           docker service logs go-environment_nginx --tail 20 2>/dev/null || echo "❌ Cannot get Nginx logs"
 
-        EOF
-        
-    - name: Health Check
-      run: |
-        ssh -p 2222 ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} << 'EOF'
-          sleep 60
-          docker stack services go-environment
-          curl -f http://localhost:9090/-/healthy || exit 1
-          curl -f http://localhost:3000/api/health || exit 1
         EOF

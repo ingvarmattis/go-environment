@@ -63,8 +63,14 @@ jobs:
           # Go to project directory
           cd /home/go-environment
           
-          # Update code
-          git pull origin main
+          # Clone repository if it doesn't exist
+          if [ ! -d ".git" ]; then
+            echo "Cloning repository..."
+            git clone https://github.com/mattis.dev/go-environment.git .
+          else
+            echo "Updating code..."
+            git pull origin main
+          fi
           
           # Create necessary data directories
           sudo mkdir -p /data/fast/{prometheus_data,grafana_data,postgres_data,tempo_data,loki_data,promtail_data,technitium-dns-data/zones}

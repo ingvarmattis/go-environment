@@ -37,8 +37,8 @@ jobs:
           exit 1
         fi
         
-        # Get SSH host key
-        ssh-keyscan -H ${{ vars.HOME_SERVER_IP }} >> ~/.ssh/known_hosts
+        # Get SSH host key from custom port 2222
+        ssh-keyscan -H -p 2222 ${{ vars.HOME_SERVER_IP }} >> ~/.ssh/known_hosts
         
     - name: Create environment file with secrets
       run: |
@@ -56,10 +56,10 @@ jobs:
     - name: Deploy to Docker Swarm
       run: |
         # Copy .env file to server
-        scp .env ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }}:/opt/go-environment/
+        scp -P 2222 .env ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }}:/opt/go-environment/
         
         # Deploy using the deployment script
-        ssh ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} << 'EOF'
+        ssh -p 2222 ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} << 'EOF'
           # Go to project directory
           cd /opt/go-environment
           
@@ -77,7 +77,7 @@ jobs:
         
     - name: Health Check
       run: |
-        ssh ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} << 'EOF'
+        ssh -p 2222 ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} << 'EOF'
           # Wait for services to start
           sleep 30
           

@@ -56,12 +56,12 @@ jobs:
     - name: Deploy to Docker Swarm
       run: |
         # Copy .env file to server
-        scp -P 2222 .env ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }}:/opt/go-environment/
+        scp -P 2222 .env ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }}:/home/${{ vars.SSH_USER }}/go-environment/
         
         # Deploy using the deployment script
         ssh -p 2222 ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} << 'EOF'
           # Go to project directory
-          cd /opt/go-environment
+          cd /home/${{ vars.SSH_USER }}/go-environment
           
           # Update code
           git pull origin main

@@ -190,20 +190,3 @@ services:
         limits:
           cpus: '0.2'
           memory: 256M
-
-  godaddy-dyndns:
-    image: us-east4-docker.pkg.dev/honest-moving/containers/godaddy-dyndns:latest
-    environment:
-      GODADDY_DDNS_API_KEY: ${GODADDY_DDNS_API_KEY}
-      GODADDY_DDNS_API_SECRET: ${GODADDY_DDNS_API_SECRET}
-      GODADDY_DDNS_DOMAIN: ${GODADDY_DDNS_DOMAIN}
-      GODADDY_DDNS_INTERVAL: ${GODADDY_DDNS_INTERVAL:-60}
-    deploy:
-      replicas: 1
-      resources:
-        reservations:
-          cpus: '0.05'
-          memory: 128M
-        limits:
-          cpus: '0.1'
-          memory: 256M

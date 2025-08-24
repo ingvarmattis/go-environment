@@ -8,11 +8,12 @@ on:
       environment:
         description: 'Environment to deploy to'
         required: true
-        default: 'production'
+        default: 'go-environment'
         type: choice
         options:
-        - production
-        - staging
+        - go-environment
+        - go-environment-staging
+        - go-environment-test
 
 jobs:
   deploy:
@@ -77,7 +78,7 @@ jobs:
           fi
           
           # Create necessary data directories
-          sudo mkdir -p /data/fast/{prometheus_data,grafana_data,postgres_data,tempo_data,loki_data,promtail_data,technitium-dns-data/zones}
+          sudo mkdir -p /data/fast/{prometheus_data,grafana_data,postgres_data,tempo_data,technitium-dns-data/zones}
           sudo chown -R 1000:1000 /data/fast/
           
           # Make deployment script executable and run it
@@ -92,7 +93,7 @@ jobs:
           sleep 30
           
           # Check services status
-          docker stack services go-environment
+          docker stack services ${{ github.event.inputs.environment || 'go-environment' }}
           
           # Check availability of main services
           echo "Checking service availability..."
@@ -110,14 +111,6 @@ jobs:
             echo "✅ Grafana is healthy"
           else
             echo "❌ Grafana health check failed"
-            exit 1
-          fi
-          
-          # Loki
-          if curl -f http://localhost:3100/ready; then
-            echo "✅ Loki is healthy"
-          else
-            echo "❌ Loki health check failed"
             exit 1
           fi
           

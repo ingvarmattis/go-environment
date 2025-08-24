@@ -154,7 +154,7 @@ jobs:
           docker service logs go-environment_torrserver --tail 20 2>/dev/null || echo "❌ Cannot get TorrServer logs"
         EOF
         
-                   - name: Health Check
+                        - name: Health Check
        run: |
          ssh -p 2222 ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} << 'EOF'
            sleep 60

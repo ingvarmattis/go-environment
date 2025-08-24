@@ -44,7 +44,17 @@ jobs:
     - name: Deploy to Docker Swarm
       run: |
         # Create .env file locally first
-        cat > .env << 'ENVEOF'
+        echo "🔍 Checking environment variables:"
+        echo "GRAFANA_ADMIN_PASSWORD: ${{ vars.GRAFANA_ADMIN_PASSWORD }}"
+        echo "POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}"
+        echo "POSTGRES_USER: ${{ vars.POSTGRES_USER }}"
+        echo "POSTGRES_DB: ${{ vars.POSTGRES_DB }}"
+        echo "GODADDY_DDNS_API_KEY: ${{ vars.GODADDY_DDNS_API_KEY }}"
+        echo "GODADDY_DDNS_API_SECRET: ${{ vars.GODADDY_DDNS_API_SECRET }}"
+        echo "GODADDY_DDNS_DOMAIN: ${{ vars.GODADDY_DDNS_DOMAIN }}"
+        echo "GODADDY_DDNS_INTERVAL: ${{ vars.GODADDY_DDNS_INTERVAL }}"
+        
+        cat > .env << ENVEOF
         GRAFANA_ADMIN_PASSWORD=${{ vars.GRAFANA_ADMIN_PASSWORD }}
         POSTGRES_PASSWORD=${{ vars.POSTGRES_PASSWORD }}
         POSTGRES_USER=${{ vars.POSTGRES_USER }}
@@ -54,6 +64,9 @@ jobs:
         GODADDY_DDNS_DOMAIN=${{ vars.GODADDY_DDNS_DOMAIN }}
         GODADDY_DDNS_INTERVAL=${{ vars.GODADDY_DDNS_INTERVAL }}
         ENVEOF
+        
+        echo "📁 Created .env file:"
+        cat .env
         
         # Copy .env file to server
         scp -P 2222 .env ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }}:/home/go-environment/
@@ -78,6 +91,13 @@ jobs:
             git pull origin main
           fi
           
+          # Verify repository was cloned/updated
+          if [ ! -f "docker/docker-swarm.yaml" ]; then
+            echo "❌ Repository files not found, trying to clone again..."
+            rm -rf * .git* 2>/dev/null || true
+            git clone https://github.com/mattis.dev/go-environment.git .
+          fi
+          
           # Create necessary data directories
           sudo mkdir -p /data/fast/{prometheus_data,grafana_data,postgres_data,tempo_data,technitium-dns-data/zones,torrserver_data,torrserver_cache}
           sudo chown -R 1000:1000 /data/fast/
@@ -98,7 +118,12 @@ jobs:
           echo "🐳 Docker Swarm status:"
           docker info | grep Swarm
           echo "🚀 Starting deployment..."
-          docker stack deploy --env-file .env -c docker/docker-swarm.yaml go-environment
+          echo "📁 Checking Docker Swarm file:"
+          ls -la docker/
+          echo "📁 Docker Swarm file content (first 20 lines):"
+          head -20 docker/docker-swarm.yaml
+          echo "🚀 Deploying stack..."
+          docker stack deploy -c docker/docker-swarm.yaml go-environment
           echo "✅ Deployment completed"
           echo "📊 Stack status:"
           docker stack ls

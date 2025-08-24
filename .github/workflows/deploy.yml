@@ -55,7 +55,7 @@ jobs:
           cd /home/go-environment
           
           # Create .env file with secrets
-          cat > .env << 'ENVEOF'
+          cat > .env << ENVEOF
           GRAFANA_ADMIN_PASSWORD=${{ vars.GRAFANA_ADMIN_PASSWORD }}
           POSTGRES_PASSWORD=${{ vars.POSTGRES_PASSWORD }}
           POSTGRES_USER=${{ vars.POSTGRES_USER }}

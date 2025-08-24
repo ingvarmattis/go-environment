@@ -83,10 +83,7 @@ GRAFANA_ADMIN_PASSWORD=admin
 POSTGRES_PASSWORD=postgres
 POSTGRES_USER=postgres
 POSTGRES_DB=grafana
-GODADDY_DDNS_API_KEY=your_api_key_here
-GODADDY_DDNS_API_SECRET=your_api_secret_here
-GODADDY_DDNS_DOMAIN=your-domain.com
-GODADDY_DDNS_INTERVAL=60
+
 EOF
 		echo "✅ Basic .env file created"; \
 		echo "⚠️  Please edit .env file with your actual values"; \

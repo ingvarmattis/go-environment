@@ -19,10 +19,7 @@ GRAFANA_ADMIN_PASSWORD=your_secure_password
 POSTGRES_PASSWORD=your_secure_password
 POSTGRES_USER=postgres
 POSTGRES_DB=grafana
-GODADDY_DDNS_API_KEY=your_api_key
-GODADDY_DDNS_API_SECRET=your_api_secret
-GODADDY_DDNS_DOMAIN=your-domain.com
-GODADDY_DDNS_INTERVAL=60
+
 EOF
     exit 1
 fi
@@ -37,9 +34,7 @@ echo "🔍 Validating required environment variables..."
 REQUIRED_VARS=(
     "GRAFANA_ADMIN_PASSWORD"
     "POSTGRES_PASSWORD"
-    "GODADDY_DDNS_API_KEY"
-    "GODADDY_DDNS_API_SECRET"
-    "GODADDY_DDNS_DOMAIN"
+    
 )
 
 for var in "${REQUIRED_VARS[@]}"; do
@@ -54,7 +49,7 @@ done
 # Set defaults for optional variables
 export POSTGRES_USER=${POSTGRES_USER:-postgres}
 export POSTGRES_DB=${POSTGRES_DB:-grafana}
-export GODADDY_DDNS_INTERVAL=${GODADDY_DDNS_INTERVAL:-60}
+
 
 echo "✅ All environment variables validated"
 

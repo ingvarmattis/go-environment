@@ -49,20 +49,12 @@ jobs:
         echo "POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}"
         echo "POSTGRES_USER: ${{ vars.POSTGRES_USER }}"
         echo "POSTGRES_DB: ${{ vars.POSTGRES_DB }}"
-        echo "GODADDY_DDNS_API_KEY: ${{ vars.GODADDY_DDNS_API_KEY }}"
-        echo "GODADDY_DDNS_API_SECRET: ${{ vars.GODADDY_DDNS_API_SECRET }}"
-        echo "GODADDY_DDNS_DOMAIN: ${{ vars.GODADDY_DDNS_DOMAIN }}"
-        echo "GODADDY_DDNS_INTERVAL: ${{ vars.GODADDY_DDNS_INTERVAL }}"
         
         cat > .env << ENVEOF
         GRAFANA_ADMIN_PASSWORD=${{ vars.GRAFANA_ADMIN_PASSWORD }}
         POSTGRES_PASSWORD=${{ vars.POSTGRES_PASSWORD }}
         POSTGRES_USER=${{ vars.POSTGRES_USER }}
         POSTGRES_DB=${{ vars.POSTGRES_DB }}
-        GODADDY_DDNS_API_KEY=${{ vars.GODADDY_DDNS_API_KEY }}
-        GODADDY_DDNS_API_SECRET=${{ vars.GODADDY_DDNS_API_SECRET }}
-        GODADDY_DDNS_DOMAIN=${{ vars.GODADDY_DDNS_DOMAIN }}
-        GODADDY_DDNS_INTERVAL=${{ vars.GODADDY_DDNS_INTERVAL }}
         ENVEOF
         
         echo "📁 Created .env file:"

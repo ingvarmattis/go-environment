@@ -51,7 +51,7 @@ services:
     volumes:
       - /data/fast/grafana_data:/var/lib/grafana
       - ./configs/prometheus/prometheus-datasource.yaml:/etc/grafana/provisioning/datasources/prometheus-datasource.yml
-      - ./configs/loki/loki-datasource.yaml:/etc/grafana/provisioning/datasources/loki-datasource.yaml
+
     deploy:
       replicas: 1
       resources:
@@ -117,43 +117,6 @@ services:
         limits:
           cpus: '0.2'
           memory: 1G
-
-  loki:
-    image: grafana/loki:2.9.3
-    ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/config.yaml
-    volumes:
-      - ./configs/loki/loki-config.yaml:/etc/loki/config.yaml
-      - /data/fast/loki_data:/loki
-    deploy:
-      replicas: 1
-      resources:
-        reservations:
-          cpus: '0.1'
-          memory: 512M
-        limits:
-          cpus: '0.2'
-          memory: 1G
-
-  promtail:
-    image: grafana/promtail:latest
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/log:/var/log
-      - /data/fast/promtail_data:/var/lib/promtail
-      - ./configs/promtail/promtail-config.yaml:/etc/promtail/config.yaml
-    command: -config.file=/etc/promtail/config.yaml
-    deploy:
-      replicas: 1
-      resources:
-        reservations:
-          cpus: '0.1'
-          memory: 128M
-        limits:
-          cpus: '0.2'
-          memory: 256M
 
   technitium-dns:
     image: technitium/dns-server:latest

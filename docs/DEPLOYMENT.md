@@ -105,7 +105,7 @@ git clone https://github.com/your-username/go-environment.git
 cd go-environment
 
 # Создаем необходимые директории для данных
-sudo mkdir -p /data/fast/{prometheus_data,grafana_data,postgres_data,tempo_data,loki_data,promtail_data,technitium-dns-data/zones}
+sudo mkdir -p /data/fast/{prometheus_data,grafana_data,postgres_data,tempo_data,technitium-dns-data/zones}
 sudo chown -R 1000:1000 /data/fast/
 ```
 

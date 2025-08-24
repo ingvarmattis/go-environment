@@ -95,7 +95,7 @@ echo "📋 Stack name: $STACK_NAME"
 echo "🌐 Services available at:"
 echo "   - Grafana: http://localhost:3000"
 echo "   - Prometheus: http://localhost:9090"
-echo "   - Loki: http://localhost:3100"
+
 echo "   - Tempo: http://localhost:5778"
 echo ""
 echo "📝 To view logs: docker service logs ${STACK_NAME}_<service_name>"

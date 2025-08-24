@@ -31,12 +31,14 @@ jobs:
     - name: Add server to known hosts
       run: |
         mkdir -p ~/.ssh
-        echo "Adding server ${{ vars.HOME_SERVER_DOMAIN }} to known hosts..."
-        if [ -z "${{ vars.HOME_SERVER_DOMAIN }}" ]; then
-          echo "Error: HOME_SERVER_DOMAIN is not set"
+        echo "Adding server ${{ vars.HOME_SERVER_IP }} to known hosts..."
+        if [ -z "${{ vars.HOME_SERVER_IP }}" ]; then
+          echo "Error: HOME_SERVER_IP is not set"
           exit 1
         fi
-        ssh-keyscan -H ${{ vars.HOME_SERVER_DOMAIN }} >> ~/.ssh/known_hosts
+        
+        # Get SSH host key
+        ssh-keyscan -H ${{ vars.HOME_SERVER_IP }} >> ~/.ssh/known_hosts
         
     - name: Create environment file with secrets
       run: |
@@ -54,10 +56,10 @@ jobs:
     - name: Deploy to Docker Swarm
       run: |
         # Copy .env file to server
-        scp .env ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_DOMAIN }}:/opt/go-environment/
+        scp .env ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }}:/opt/go-environment/
         
         # Deploy using the deployment script
-        ssh ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_DOMAIN }} << 'EOF'
+        ssh ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} << 'EOF'
           # Go to project directory
           cd /opt/go-environment
           
@@ -75,7 +77,7 @@ jobs:
         
     - name: Health Check
       run: |
-        ssh ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_DOMAIN }} << 'EOF'
+        ssh ${{ vars.SSH_USER }}@${{ vars.HOME_SERVER_IP }} << 'EOF'
           # Wait for services to start
           sleep 30
           

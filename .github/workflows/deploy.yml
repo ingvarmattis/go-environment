@@ -131,35 +131,51 @@ jobs:
           
           # Create necessary data directories in /data/fast if they don't exist
           echo "📁 Creating data directories..."
+          
+          # Create base directory first
+          sudo mkdir -p /data/fast
+          sudo chown -R 1000:1000 /data/fast
+          sudo chmod -R 755 /data/fast
+          
+          # Create and set permissions for each service directory
           if [ ! -d "/data/fast/prometheus_data" ]; then
             sudo mkdir -p /data/fast/prometheus_data
-            sudo chown -R 1000:1000 /data/fast/prometheus_data
           fi
           if [ ! -d "/data/fast/grafana_data" ]; then
             sudo mkdir -p /data/fast/grafana_data
-            sudo chown -R 1000:1000 /data/fast/grafana_data
           fi
           if [ ! -d "/data/fast/postgres_data" ]; then
             sudo mkdir -p /data/fast/postgres_data
-            sudo chown -R 1000:1000 /data/fast/postgres_data
           fi
           if [ ! -d "/data/fast/tempo_data" ]; then
             sudo mkdir -p /data/fast/tempo_data
-            sudo chown -R 1000:1000 /data/fast/tempo_data
+          fi
+          if [ ! -d "/data/fast/technitium-dns-data" ]; then
+            sudo mkdir -p /data/fast/technitium-dns-data
           fi
           if [ ! -d "/data/fast/technitium-dns-data/zones" ]; then
             sudo mkdir -p /data/fast/technitium-dns-data/zones
-            sudo chown -R 1000:1000 /data/fast/technitium-dns-data
           fi
           if [ ! -d "/data/fast/torrserver_data" ]; then
             sudo mkdir -p /data/fast/torrserver_data
-            sudo chown -R 1000:1000 /data/fast/torrserver_data
           fi
           if [ ! -d "/data/fast/torrserver_cache" ]; then
             sudo mkdir -p /data/fast/torrserver_cache
-            sudo chown -R 1000:1000 /data/fast/torrserver_cache
           fi
-          echo "✅ Data directories created/verified"
+          
+          # Set correct ownership and permissions for all directories
+          echo "🔐 Setting correct permissions..."
+          sudo chown -R 1000:1000 /data/fast
+          sudo chmod -R 755 /data/fast
+          sudo chmod -R 777 /data/fast/postgres_data
+          sudo chmod -R 777 /data/fast/grafana_data
+          sudo chmod -R 777 /data/fast/prometheus_data
+          sudo chmod -R 777 /data/fast/tempo_data
+          sudo chmod -R 777 /data/fast/technitium-dns-data
+          sudo chmod -R 777 /data/fast/torrserver_data
+          sudo chmod -R 777 /data/fast/torrserver_cache
+          
+          echo "✅ Data directories created/verified with correct permissions"
           
           # Copy necessary configs to data directories
           echo "📋 Copying configs to data directories..."
@@ -173,10 +189,21 @@ jobs:
           if [ ! -f "/data/fast/technitium-dns-data/zones/example.com.json" ]; then
             sudo mkdir -p /data/fast/technitium-dns-data/zones
             echo '{"name":"example.com","zoneType":"Primary","primaryNameServer":"ns1.example.com","adminEmailAddress":"admin@example.com","zoneFile":"$ORIGIN example.com.\n$TTL 3600\n@ IN SOA ns1.example.com. admin.example.com. 2024010101 3600 1800 1209600 3600\n@ IN NS ns1.example.com.\n@ IN A 127.0.0.1\nns1 IN A 127.0.0.1"}' | sudo tee /data/fast/technitium-dns-data/zones/example.com.json > /dev/null
-            sudo chown -R 1000:1000 /data/fast/technitium-dns-data/zones
           fi
           
-          echo "✅ Configs copied to data directories"
+          # Final permission fix after all operations
+          echo "🔐 Final permission fix..."
+          sudo chown -R 1000:1000 /data/fast
+          sudo chmod -R 755 /data/fast
+          sudo chmod -R 777 /data/fast/postgres_data
+          sudo chmod -R 777 /data/fast/grafana_data
+          sudo chmod -R 777 /data/fast/prometheus_data
+          sudo chmod -R 777 /data/fast/tempo_data
+          sudo chmod -R 777 /data/fast/technitium-dns-data
+          sudo chmod -R 777 /data/fast/torrserver_data
+          sudo chmod -R 777 /data/fast/torrserver_cache
+          
+          echo "✅ Configs copied to data directories with correct permissions"
           
           # Create shared external network for inter-stack communication
           docker network create --driver overlay --attachable shared-network 2>/dev/null || true

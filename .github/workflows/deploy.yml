@@ -140,8 +140,15 @@ jobs:
           ls -la docker/
           
           # Create necessary data directories
+          echo "📁 Creating data directories..."
           sudo mkdir -p /data/fast/{prometheus_data,grafana_data,postgres_data,tempo_data,technitium-dns-data/zones,torrserver_data,torrserver_cache}
           sudo chown -R 1000:1000 /data/fast/
+          
+          # Verify directory permissions
+          echo "🔍 Checking directory permissions..."
+          ls -la /data/fast/
+          echo "🔍 Checking directory ownership..."
+          ls -la /data/fast/ | grep -E "(prometheus_data|grafana_data|postgres_data|tempo_data|torrserver_data|torrserver_cache)"
           
           # Make deployment script executable and run it
           chmod +x scripts/deploy-with-env.sh
@@ -161,8 +168,24 @@ jobs:
           echo "🚀 Starting deployment..."
           echo "📁 Checking Docker Swarm file:"
           ls -la docker/
+          
+          # Check if required images are available
+          echo "🐳 Checking Docker images availability..."
+          docker images | grep -E "(grafana|prometheus|postgres|tempo|nginx|torrserver|technitium|node-exporter|postgres-exporter)" || echo "⚠️ Some images not found locally"
           echo "📁 Docker Swarm file content (first 20 lines):"
           head -20 docker/docker-swarm.yaml
+          
+          # Validate Docker Swarm file
+          echo "🔍 Validating Docker Swarm file..."
+          if docker-compose -f docker/docker-swarm.yaml config >/dev/null 2>&1; then
+            echo "✅ Docker Swarm file is valid"
+          else
+            echo "❌ Docker Swarm file has syntax errors!"
+            echo "📋 Full file content:"
+            cat docker/docker-swarm.yaml
+            exit 1
+          fi
+          
           echo "🚀 Deploying stack..."
           docker stack deploy -c docker/docker-swarm.yaml go-environment
           echo "✅ Deployment completed"
@@ -170,6 +193,22 @@ jobs:
           docker stack ls
           echo "📊 Services status:"
           docker stack services go-environment
+          
+          # Wait a bit and check service logs for failed services
+          echo "⏳ Waiting for services to start..."
+          sleep 30
+          
+          echo "📊 Checking service status and logs..."
+          docker stack services go-environment
+          
+          # Check logs for services that might have failed
+          echo "📋 Checking service logs for potential failures..."
+          docker service logs go-environment_prometheus --tail 20 2>/dev/null || echo "❌ Cannot get Prometheus logs"
+          docker service logs go-environment_grafana --tail 20 2>/dev/null || echo "❌ Cannot get Grafana logs"
+          docker service logs go-environment_postgres --tail 20 2>/dev/null || echo "❌ Cannot get Postgres logs"
+          docker service logs go-environment_tempo --tail 20 2>/dev/null || echo "❌ Cannot get Tempo logs"
+          docker service logs go-environment_nginx --tail 20 2>/dev/null || echo "❌ Cannot get Nginx logs"
+          docker service logs go-environment_torrserver --tail 20 2>/dev/null || echo "❌ Cannot get TorrServer logs"
         EOF
         
     - name: Health Check

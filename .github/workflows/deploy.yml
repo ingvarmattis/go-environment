@@ -125,6 +125,16 @@ jobs:
           
           echo "✅ Repository cloned successfully"
           
+          # Restore .env file after clone
+          echo "📁 Restoring .env file..."
+          cat > .env << ENVEOF
+          GRAFANA_ADMIN_PASSWORD=${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER=${{ vars.POSTGRES_USER }}
+          POSTGRES_DB=${{ vars.POSTGRES_DB }}
+          ENVEOF
+          echo "✅ .env file restored"
+          
           # Show what was cloned
           echo "📁 Repository contents after clone:"
           ls -la

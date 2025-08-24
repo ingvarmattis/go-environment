@@ -22,7 +22,7 @@
 ```bash
 # Клонируем репозиторий на сервер
 cd /opt
-git clone https://github.com/your-username/go-environment.git
+git clone https://github.com/mattis-dev/go-environment.git
 cd go-environment
 
 # Запускаем автоматическую настройку
@@ -116,7 +116,7 @@ sudo chown -R 1000:1000 /data/fast/
 | Имя | Описание | Пример |
 |-----|----------|---------|
 | `SSH_PRIVATE_KEY` | Приватный SSH ключ для подключения к серверу | Содержимое файла `~/.ssh/id_ed25519` |
-| `HOME_SERVER_IP` | IP адрес вашего домашнего сервера | `192.168.1.100` |
+| `HOME_SERVER_DOMAIN` | Доменное имя вашего домашнего сервера | `home.mattis.dev` |
 | `SSH_USER` | Имя пользователя для SSH подключения | `docker-user` |
 
 ### Как получить SSH ключ:

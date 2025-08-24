@@ -17,6 +17,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: go-environment
     
     steps:
     - name: Checkout code
@@ -30,7 +31,7 @@ jobs:
     - name: Add server to known hosts
       run: |
         mkdir -p ~/.ssh
-        ssh-keyscan -H ${{ secrets.HOME_SERVER_IP }} >> ~/.ssh/known_hosts
+        ssh-keyscan -H ${{ secrets.HOME_SERVER_DOMAIN }} >> ~/.ssh/known_hosts
         
     - name: Create environment file with secrets
       run: |
@@ -48,10 +49,10 @@ jobs:
     - name: Deploy to Docker Swarm
       run: |
         # Copy .env file to server
-        scp .env ${{ secrets.SSH_USER }}@${{ secrets.HOME_SERVER_IP }}:/opt/go-environment/
+        scp .env ${{ secrets.SSH_USER }}@${{ secrets.HOME_SERVER_DOMAIN }}:/opt/go-environment/
         
         # Deploy using the deployment script
-        ssh ${{ secrets.SSH_USER }}@${{ secrets.HOME_SERVER_IP }} << 'EOF'
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.HOME_SERVER_DOMAIN }} << 'EOF'
           # Go to project directory
           cd /opt/go-environment
           
@@ -69,7 +70,7 @@ jobs:
         
     - name: Health Check
       run: |
-        ssh ${{ secrets.SSH_USER }}@${{ secrets.HOME_SERVER_IP }} << 'EOF'
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.HOME_SERVER_DOMAIN }} << 'EOF'
           # Wait for services to start
           sleep 30
           

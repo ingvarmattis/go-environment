@@ -90,7 +90,7 @@ fi
 # Create project directories
 echo "📁 Creating directories..."
 mkdir -p /opt/go-environment
-mkdir -p /data/fast/{prometheus_data,grafana_data,postgres_data,tempo_data,technitium-dns-data/zones,torrserver_data,torrserver_cache}
+mkdir -p /data/fast/{prometheus_data,grafana_data,postgres_data,tempo_data,technitium-dns-data/zones}
 
 # Set proper permissions
 echo "🔐 Setting permissions..."

@@ -67,7 +67,7 @@ docker swarm init --advertise-addr $SWARM_IP
 
 # Create necessary data directories
 echo "📁 Creating data directories..."
-sudo mkdir -p /data/fast/{prometheus_data,grafana_data,postgres_data,tempo_data,technitium-dns-data/zones,torrserver_data,torrserver_cache}
+sudo mkdir -p /data/fast/{prometheus_data,grafana_data,postgres_data,tempo_data,technitium-dns-data/zones}
 
 # Set proper permissions
 echo "🔐 Setting permissions..."

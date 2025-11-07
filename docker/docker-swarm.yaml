@@ -161,6 +161,8 @@ services:
     volumes:
       - /home/go-environment/configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - shared-network
     deploy:
       replicas: 1
       resources:
